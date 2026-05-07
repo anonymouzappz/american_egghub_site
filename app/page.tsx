@@ -2,7 +2,6 @@
 
 import { db } from "@/lib/firebase";
 import {
-  addDoc,
   collection,
   doc,
   onSnapshot,
@@ -10,7 +9,9 @@ import {
   setDoc,
 } from "firebase/firestore";
 import Link from "next/link";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+
+type WaitlistType = "buyer" | "seller";
 
 type Feature = {
   title: string;
@@ -24,7 +25,6 @@ type StatItem = {
 };
 
 type LandingPageContent = {
-  appUrl: string;
   brandName: string;
   brandTagline: string;
   heroBadge: string;
@@ -46,20 +46,19 @@ type LandingPageContent = {
 };
 
 const fallbackContent: LandingPageContent = {
-  appUrl: "https://app.americanegghub.us",
   brandName: "American EggHub",
   brandTagline: "Fresh local eggs",
   heroBadge: "Built for local farms, homesteads, and backyard sellers",
   heroTitle: "Fresh local eggs.",
   heroHighlight: "Direct from trusted sellers.",
   heroText:
-    "American EggHub connects buyers with local egg sellers through map-based discovery, storefronts, pickup, delivery, and seller approval for a safer local marketplace.",
+    "American EggHub is preparing a local egg marketplace where buyers can find fresh eggs nearby and sellers can grow with a simple storefront.",
   primaryButtonText: "Find Eggs Near Me",
   secondaryButtonText: "Become a Seller",
   stats: [
-    { value: "100+", label: "Seller goal" },
-    { value: "5%", label: "Platform fee" },
+    { value: "Coming", label: "Soon" },
     { value: "Local", label: "Pickup & delivery" },
+    { value: "Free", label: "Early waitlist" },
   ],
   features: [
     {
@@ -74,7 +73,7 @@ const fallbackContent: LandingPageContent = {
     },
     {
       title: "Seller Storefronts",
-      text: "Every approved seller gets a clean storefront to list eggs, chicks, and farm goods.",
+      text: "Approved sellers get a clean storefront to list eggs, chicks, and farm goods.",
       icon: "🏪",
     },
     {
@@ -93,25 +92,20 @@ const fallbackContent: LandingPageContent = {
   ],
   buyersTitle: "Find fresh eggs without guessing who sells nearby.",
   buyersText:
-    "Browse approved sellers, view storefronts, check pickup and delivery options, and discover local egg sources from a clean map.",
+    "Join the buyer waitlist and get notified when American EggHub launches in your area.",
   sellersTitle: "Turn your eggs into a local storefront.",
   sellersText:
-    "Create your store, add your location, upload banners and logos, list categories, and get discovered by buyers in your area.",
+    "Join the seller waitlist and get early access when seller onboarding opens.",
   howTitle: "A simple path from local seller to local buyer.",
-  ctaTitle: "Ready to join American EggHub?",
+  ctaTitle: "American EggHub is launching soon.",
   ctaText:
-    "Buyers can find fresh eggs nearby. Sellers can build a real local storefront without building a website from scratch.",
+    "Join the waitlist today and be first to know when local egg buying and selling opens.",
 };
-
-// keep your same types + fallbackContent here...
 
 export default function Home() {
   const [content, setContent] = useState<LandingPageContent>(fallbackContent);
-  const sellersRef = useRef<HTMLElement | null>(null);
-  const [showSellers, setShowSellers] = useState(false);
-  const [email, setEmail] = useState("");
-  const [isSubscribing, setIsSubscribing] = useState(false);
-  const [subscribeMessage, setSubscribeMessage] = useState("");
+
+  const [screen, setScreen] = useState<WaitlistType | null>(null);
 
   useEffect(() => {
     const ref = doc(db, "siteContent", "landingPage");
@@ -128,83 +122,15 @@ export default function Home() {
     return () => unsub();
   }, []);
 
-  useEffect(() => {
-    const observer = new IntersectionObserver(
-      ([entry]) => {
-        setShowSellers(entry.isIntersecting);
-      },
-      { threshold: 0.25 },
+  if (screen) {
+    return (
+      <ComingSoonScreen
+        type={screen}
+        brandName={content.brandName}
+        onBack={() => setScreen(null)}
+      />
     );
-
-    if (sellersRef.current) {
-      observer.observe(sellersRef.current);
-    }
-
-    return () => observer.disconnect();
-  }, []);
-
-  const appUrl = content.appUrl;
-
-  const seedFirebaseContent = async () => {
-    try {
-      await setDoc(
-        doc(db, "siteContent", "landingPage"),
-        {
-          ...fallbackContent,
-          updatedAt: serverTimestamp(),
-        },
-        { merge: true },
-      );
-
-      alert("Seeded successfully!");
-    } catch (error: any) {
-      alert(error?.message ?? "Seed failed");
-    }
-  };
-
-  const handleSubscribe = async (e: React.FormEvent) => {
-  e.preventDefault();
-
-  const cleanEmail = email.trim().toLowerCase();
-
-  if (!cleanEmail || !cleanEmail.includes("@")) {
-    setSubscribeMessage("Please enter a valid email.");
-    return;
   }
-
-  try {
-    setIsSubscribing(true);
-    setSubscribeMessage("");
-
-    await addDoc(collection(db, "emailSubscribers"), {
-      email: cleanEmail,
-      source: "landing_page",
-      isActive: true,
-      createdAt: serverTimestamp(),
-    });
-
-    await addDoc(collection(db, "mail"), {
-      to: cleanEmail,
-      message: {
-        subject: "Welcome to American EggHub",
-        html: `
-          <h1>Welcome to American EggHub 🥚</h1>
-          <p>Thanks for subscribing!</p>
-          <p>We'll keep you updated as we launch.</p>
-        `,
-      },
-      createdAt: serverTimestamp(),
-    });
-
-    setEmail("");
-    setSubscribeMessage("You're subscribed! Check your email.");
-  } catch (error: any) {
-    console.error("Subscribe error:", error);
-    setSubscribeMessage(error?.message ?? "Subscribe failed.");
-  } finally {
-    setIsSubscribing(false);
-  }
-};
 
   return (
     <main className="relative min-h-screen overflow-hidden bg-[#fff8e8] text-[#1f241d]">
@@ -213,16 +139,7 @@ export default function Home() {
       <nav className="sticky top-0 z-50 border-b border-black/5 bg-[#fff8e8]/80 backdrop-blur-2xl">
         <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-4">
           <Link href="/" className="group flex items-center gap-4">
-            <div className="relative h-16 w-16 overflow-hidden rounded-[1.5rem] bg-gradient-to-br from-[#ffe8a3] to-[#f4b400] p-1 shadow-lg shadow-yellow-900/10 transition duration-300 group-hover:scale-105 group-hover:rotate-3">
-              <div className="grid h-full w-full place-items-center rounded-[1.25rem] bg-white/70">
-                <img
-                  src="/assets/images/american_egghub.png"
-                  alt="American EggHub logo"
-                  className="h-14 w-14 object-contain"
-                />
-              </div>
-            </div>
-
+            <Logo />
             <div>
               <p className="text-xl font-black leading-none">
                 {content.brandName}
@@ -245,21 +162,12 @@ export default function Home() {
             ))}
           </div>
 
-          <div className="flex items-center gap-3">
-            <Link
-              href={appUrl}
-              className="hidden rounded-full px-5 py-3 text-sm font-black text-[#2f6b3b] transition hover:bg-white md:block"
-            >
-              Sign In
-            </Link>
-
-            <Link
-              href={`${appUrl}/seller-register`}
-              className="rounded-full bg-[#2f6b3b] px-5 py-3 text-sm font-black text-white shadow-xl shadow-green-900/20 transition hover:-translate-y-1 hover:bg-[#255832]"
-            >
-              Start Selling
-            </Link>
-          </div>
+          <button
+            onClick={() => setScreen("seller")}
+            className="rounded-full bg-[#2f6b3b] px-5 py-3 text-sm font-black text-white shadow-xl shadow-green-900/20 transition hover:-translate-y-1 hover:bg-[#255832]"
+          >
+            Seller Waitlist
+          </button>
         </div>
       </nav>
 
@@ -270,7 +178,11 @@ export default function Home() {
               <span className="animate-bounce">🚜</span>
               {content.heroBadge}
             </div>
+          
 
+            <div className="mb-6 inline-flex items-center gap-2 rounded-full bg-[#2f6b3b]/10 px-4 py-2 text-sm font-black text-[#2f6b3b]">
+              🌴 Launching First In Southwest Florida
+            </div>
             <h1 className="max-w-3xl text-5xl font-black tracking-tight md:text-7xl">
               {content.heroTitle}{" "}
               <span className="relative inline-block text-[#2f6b3b]">
@@ -284,19 +196,19 @@ export default function Home() {
             </p>
 
             <div className="mt-9 flex flex-col gap-4 sm:flex-row">
-              <Link
-                href={appUrl}
+              <button
+                onClick={() => setScreen("buyer")}
                 className="rounded-full bg-[#2f6b3b] px-8 py-4 text-center text-base font-black text-white shadow-xl shadow-green-900/20 transition hover:-translate-y-1 hover:bg-[#255832]"
               >
                 {content.primaryButtonText}
-              </Link>
+              </button>
 
-              <Link
-                href={`${appUrl}/seller-register`}
+              <button
+                onClick={() => setScreen("seller")}
                 className="rounded-full border border-black/10 bg-white px-8 py-4 text-center text-base font-black text-[#2f6b3b] shadow-sm transition hover:-translate-y-1 hover:shadow-xl"
               >
                 {content.secondaryButtonText}
-              </Link>
+              </button>
             </div>
 
             <div className="mt-10 grid max-w-lg grid-cols-3 gap-4">
@@ -322,42 +234,37 @@ export default function Home() {
           <p className="mt-4 max-w-3xl text-lg leading-8 text-black/60">
             {content.buyersText}
           </p>
+          <button
+            onClick={() => setScreen("buyer")}
+            className="mt-7 rounded-full bg-[#2f6b3b] px-7 py-4 font-black text-white shadow-lg shadow-green-900/20 transition hover:-translate-y-1"
+          >
+            Join Buyer Waitlist
+          </button>
         </AnimatedCard>
       </section>
 
-      <section
-        ref={sellersRef}
-        id="sellers"
-        className="mx-auto max-w-7xl px-6 py-16"
-      >
+      <section id="sellers" className="mx-auto max-w-7xl px-6 py-16">
         <div className="grid gap-8 lg:grid-cols-2">
-          <div
-            className={`rounded-[2rem] bg-[#2f6b3b] p-8 text-white shadow-xl shadow-green-950/20 transition hover:-translate-y-1 md:p-12 ${
-              showSellers ? "animate-slide-left" : "opacity-0"
-            }`}
-          >
+          <div className="rounded-[2rem] bg-[#2f6b3b] p-8 text-white shadow-xl shadow-green-950/20 transition hover:-translate-y-1 md:p-12">
             <p className="font-black text-[#ffe8a3]">For Sellers</p>
             <h2 className="mt-3 text-4xl font-black">{content.sellersTitle}</h2>
             <p className="mt-4 text-lg leading-8 text-white/75">
               {content.sellersText}
             </p>
 
-            <Link
-              href={`${appUrl}/seller-register`}
+            <button
+              onClick={() => setScreen("seller")}
               className="mt-8 inline-block rounded-full bg-[#f4b400] px-7 py-4 font-black text-black shadow-lg shadow-black/10 transition hover:-translate-y-1"
             >
-              Apply as Seller
-            </Link>
+              Join Seller Waitlist
+            </button>
           </div>
 
           <div className="grid gap-5">
-            {content.features.map((feature, index) => (
+            {content.features.map((feature) => (
               <div
                 key={feature.title}
-                className={`group rounded-[1.6rem] bg-white/85 p-6 shadow-lg shadow-black/5 backdrop-blur transition duration-300 hover:-translate-y-1 hover:shadow-2xl ${
-                  showSellers ? "animate-fade-up" : "opacity-0"
-                }`}
-                style={{ animationDelay: `${index * 120 + 250}ms` }}
+                className="group rounded-[1.6rem] bg-white/85 p-6 shadow-lg shadow-black/5 backdrop-blur transition duration-300 hover:-translate-y-1 hover:shadow-2xl"
               >
                 <div className="flex gap-4">
                   <div className="grid h-14 w-14 shrink-0 place-items-center rounded-[1.4rem] bg-[#ffe8a3] text-3xl transition group-hover:rotate-6 group-hover:scale-110">
@@ -391,8 +298,7 @@ export default function Home() {
               </div>
               <h3 className="text-xl font-black">{category}</h3>
               <p className="mt-2 text-sm leading-6 text-black/55">
-                Sellers can organize storefronts by category so buyers can find
-                what they need faster.
+                Coming soon for local sellers and buyers.
               </p>
             </div>
           ))}
@@ -407,117 +313,321 @@ export default function Home() {
           <div className="mt-10 grid gap-6 md:grid-cols-3">
             <Step
               number="01"
-              title="Seller creates store"
-              text="Add logo, banner, location, pickup, delivery, and categories."
+              title="Join the waitlist"
+              text="Buyers and sellers can sign up early before full launch."
             />
             <Step
               number="02"
-              title="Admin approves"
-              text="Seller accounts can be reviewed before marketplace access."
+              title="Get launch updates"
+              text="We will notify you when American EggHub opens in your area."
             />
             <Step
               number="03"
-              title="Buyers discover"
-              text="Buyers browse the map, open storefronts, and connect locally."
+              title="Start local"
+              text="Buyers find fresh eggs. Sellers open storefronts and reach nearby customers."
             />
-          </div>
-        </div>
-      </section>
-
-      <section className="mx-auto max-w-7xl px-6 py-16">
-        <div className="relative overflow-hidden rounded-[2.5rem] bg-white/90 p-8 shadow-2xl shadow-black/5 backdrop-blur md:p-12">
-          <div className="absolute -right-12 -top-12 h-40 w-40 rounded-full bg-[#f4b400]/25 blur-2xl" />
-          <div className="absolute -bottom-16 -left-16 h-48 w-48 rounded-full bg-[#2f6b3b]/15 blur-2xl" />
-
-          <div className="relative grid gap-8 lg:grid-cols-[1fr_420px] lg:items-center">
-            <div>
-              <p className="font-black text-[#2f6b3b]">Stay Updated</p>
-              <h2 className="mt-2 text-4xl font-black">
-                Get notified when American EggHub launches near you.
-              </h2>
-              <p className="mt-4 max-w-2xl text-lg leading-8 text-black/60">
-                Join the early list for local egg updates, seller openings,
-                marketplace news, and launch announcements.
-              </p>
-            </div>
-
-            <form
-              onSubmit={handleSubscribe}
-              className="rounded-[2rem] bg-[#fff8e8] p-4 shadow-inner"
-            >
-              <div className="flex flex-col gap-3 sm:flex-row">
-                <input
-                  type="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  placeholder="Enter your email"
-                  className="min-h-[56px] flex-1 rounded-full border border-black/10 bg-white px-5 text-base font-bold outline-none transition focus:border-[#2f6b3b] focus:ring-4 focus:ring-[#2f6b3b]/10"
-                />
-
-                <button
-                  type="submit"
-                  disabled={isSubscribing}
-                  className="min-h-[56px] rounded-full bg-[#2f6b3b] px-7 font-black text-white shadow-xl shadow-green-900/20 transition hover:-translate-y-1 hover:bg-[#255832] disabled:cursor-not-allowed disabled:opacity-60"
-                >
-                  {isSubscribing ? "Joining..." : "Subscribe"}
-                </button>
-              </div>
-
-              {subscribeMessage && (
-                <p className="mt-3 text-sm font-bold text-black/60">
-                  {subscribeMessage}
-                </p>
-              )}
-            </form>
           </div>
         </div>
       </section>
 
       <section className="mx-auto max-w-7xl px-6 py-20">
         <div className="relative overflow-hidden rounded-[2.5rem] bg-[#f4b400] p-8 text-center shadow-2xl shadow-yellow-900/20 md:p-14">
-          <div className="absolute -left-10 -top-10 h-32 w-24 rotate-12 rounded-[50%] bg-white/30" />
-          <div className="absolute -bottom-12 right-10 h-40 w-28 -rotate-12 rounded-[50%] bg-white/25" />
-
           <h2 className="relative text-4xl font-black md:text-5xl">
             {content.ctaTitle}
           </h2>
           <p className="relative mx-auto mt-4 max-w-2xl text-lg font-semibold text-black/65">
             {content.ctaText}
           </p>
+
+          <div className="relative mt-8 flex flex-col justify-center gap-4 sm:flex-row">
+            <button
+              onClick={() => setScreen("buyer")}
+              className="rounded-full bg-[#2f6b3b] px-8 py-4 font-black text-white shadow-xl shadow-green-900/20"
+            >
+              Find Eggs Soon
+            </button>
+            <button
+              onClick={() => setScreen("seller")}
+              className="rounded-full bg-white px-8 py-4 font-black text-[#2f6b3b] shadow-xl"
+            >
+              Sell Eggs Soon
+            </button>
+          </div>
         </div>
       </section>
 
-      <style jsx global>{`
-        @keyframes floatEgg {
-          0%,
-          100% {
-            transform: translateY(0) rotate(0deg);
-          }
-          50% {
-            transform: translateY(-18px) rotate(6deg);
-          }
-        }
-
-        @keyframes fadeUp {
-          from {
-            opacity: 0;
-            transform: translateY(24px);
-          }
-          to {
-            opacity: 1;
-            transform: translateY(0);
-          }
-        }
-
-        .animate-fade-up {
-          animation: fadeUp 0.8s ease both;
-        }
-
-        .egg-float {
-          animation: floatEgg 5s ease-in-out infinite;
-        }
-      `}</style>
+      <GlobalStyles />
     </main>
+  );
+}
+
+function ComingSoonScreen({
+  type,
+  brandName,
+  onBack,
+}: {
+  type: WaitlistType;
+  brandName: string;
+  onBack: () => void;
+}) {
+  const isBuyer = type === "buyer";
+
+  const [email, setEmail] = useState("");
+  const [zipCode, setZipCode] = useState("");
+  const [farmName, setFarmName] = useState("");
+  const [location, setLocation] = useState("");
+  const [isJoining, setIsJoining] = useState(false);
+  const [message, setMessage] = useState("");
+
+  const page = useMemo(() => {
+    if (isBuyer) {
+      return {
+        badge: "Buyer Early Access",
+        title: "Fresh local eggs for Southwest Florida.",
+        text: "Join the buyer waitlist and we’ll notify you when American EggHub launches near your area.",
+        button: "Join Buyer Waitlist",
+        icon: "🥚",
+        bullets: [
+          "Find fresh eggs from local Southwest Florida farms and homesteads.",
+          "Discover pickup and delivery options",
+          "Support local farms and homesteads",
+          "Get notified when your area opens",
+        ],
+      };
+    }
+
+    return {
+      badge: "Seller Early Access",
+      title: "Southwest Florida egg sellers — your marketplace is coming.",
+      text: "Join the seller waitlist and get notified when American EggHub opens seller onboarding.",
+      button: "Join Seller Waitlist",
+      icon: "🐔",
+      bullets: [
+        "Get your own seller storefront",
+        "List eggs, chicks, and farm goods",
+        "Reach nearby buyers",
+        "Prepare before full marketplace launch",
+      ],
+    };
+  }, [isBuyer]);
+
+  const handleJoinWaitlist = async (e: React.FormEvent) => {
+    e.preventDefault();
+
+    const cleanEmail = email.trim().toLowerCase();
+    const cleanZip = zipCode.trim();
+
+    if (!cleanEmail || !cleanEmail.includes("@")) {
+      setMessage("Please enter a valid email.");
+      return;
+    }
+
+    if (!cleanZip) {
+      setMessage("Please enter your City or ZIP Code.");
+      return;
+    }
+
+    try {
+      setIsJoining(true);
+      setMessage("");
+
+      const safeEmailId = cleanEmail.replaceAll(".", "_").replaceAll("@", "_");
+
+      await setDoc(
+        doc(db, "waitlist", `${type}_${safeEmailId}`),
+        {
+          email: cleanEmail,
+          type,
+          zipCode: cleanZip,
+          farmName: farmName.trim(),
+          location: location.trim(),
+          source: isBuyer ? "buyer_coming_soon" : "seller_coming_soon",
+          isActive: true,
+          updatedAt: serverTimestamp(),
+          createdAt: serverTimestamp(),
+        },
+        { merge: true },
+      );
+
+      await setDoc(
+        doc(db, "emailSubscribers", safeEmailId),
+        {
+          email: cleanEmail,
+          audience: type,
+          source: isBuyer ? "buyer_coming_soon" : "seller_coming_soon",
+          zipCode: cleanZip,
+          isActive: true,
+          updatedAt: serverTimestamp(),
+          createdAt: serverTimestamp(),
+        },
+        { merge: true },
+      );
+
+      await setDoc(doc(collection(db, "mail")), {
+        to: cleanEmail,
+        message: {
+          subject: `You're on the ${brandName} waitlist`,
+          html: `
+            <div style="font-family:Arial,sans-serif;background:#fff8e8;padding:30px;">
+              <div style="max-width:620px;margin:auto;background:white;border-radius:24px;padding:30px;border:1px solid #eee;">
+                <h1 style="color:#2f6b3b;margin-top:0;">Welcome to ${brandName} 🥚</h1>
+                <p>Thanks for joining the ${isBuyer ? "buyer" : "seller"} waitlist.</p>
+                <p>We'll keep you updated as American EggHub gets ready to launch in your area.</p>
+                <p style="margin-top:30px;font-size:12px;color:#777;">
+                  You received this because you joined the American EggHub waitlist.
+                </p>
+              </div>
+            </div>
+          `,
+        },
+        createdAt: serverTimestamp(),
+      });
+
+      setEmail("");
+      setZipCode("");
+      setFarmName("");
+      setLocation("");
+      setMessage("You're on the waitlist! Check your email.");
+    } catch (error: any) {
+      console.error(error);
+      setMessage(error?.message ?? "Something went wrong.");
+    } finally {
+      setIsJoining(false);
+    }
+  };
+
+  return (
+    <main className="relative min-h-screen overflow-hidden bg-[#fff8e8] text-[#1f241d]">
+      <EggBackground />
+
+      <nav className="relative z-20 mx-auto flex max-w-7xl items-center justify-between px-6 py-6">
+        <button
+          onClick={onBack}
+          className="rounded-full bg-white px-5 py-3 text-sm font-black text-[#2f6b3b] shadow-sm transition hover:-translate-y-1"
+        >
+          ← Back
+        </button>
+
+        <div className="flex items-center gap-3">
+          <Logo small />
+          <p className="font-black">{brandName}</p>
+        </div>
+      </nav>
+
+      <section className="relative z-10 mx-auto grid max-w-7xl items-center gap-10 px-6 py-10 lg:grid-cols-[1fr_460px] lg:py-20">
+        <div>
+          <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-[#2f6b3b]/15 bg-white/80 px-4 py-2 text-sm font-black text-[#2f6b3b] shadow-sm backdrop-blur">
+            <span>{page.icon}</span>
+            {page.badge}
+          </div>
+
+          <h1 className="max-w-3xl text-5xl font-black tracking-tight md:text-7xl">
+            {page.title}
+          </h1>
+
+          <p className="mt-6 max-w-2xl text-lg leading-8 text-black/65 md:text-xl">
+            {page.text}
+          </p>
+
+          <div className="mt-8 grid gap-4 sm:grid-cols-2">
+            {page.bullets.map((bullet) => (
+              <div
+                key={bullet}
+                className="rounded-2xl bg-white/85 p-5 font-bold text-black/65 shadow-sm"
+              >
+                <span className="mr-2 text-[#2f6b3b]">✓</span>
+                {bullet}
+              </div>
+            ))}
+          </div>
+        </div>
+
+        <form
+          onSubmit={handleJoinWaitlist}
+          className="rounded-[2.5rem] bg-white/90 p-6 shadow-2xl shadow-black/10 backdrop-blur md:p-8"
+        >
+          <div className="mb-6 grid h-20 w-20 place-items-center rounded-[2rem] bg-[#ffe8a3] text-4xl">
+            {page.icon}
+          </div>
+
+          <h2 className="text-3xl font-black">Join the waitlist</h2>
+          <p className="mt-2 text-sm font-semibold text-black/50">
+            We’ll email you when early access opens.
+          </p>
+
+          <div className="mt-7 space-y-4">
+            <input
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              placeholder="Email address"
+              className="min-h-[56px] w-full rounded-2xl border border-black/10 bg-[#fff8e8] px-5 font-bold outline-none transition focus:border-[#2f6b3b] focus:ring-4 focus:ring-[#2f6b3b]/10"
+            />
+
+            <input
+              value={zipCode}
+              onChange={(e) => setZipCode(e.target.value)}
+              placeholder="City or ZIP Code"
+              className="min-h-[56px] w-full rounded-2xl border border-black/10 bg-[#fff8e8] px-5 font-bold outline-none transition focus:border-[#2f6b3b] focus:ring-4 focus:ring-[#2f6b3b]/10"
+            />
+
+            {!isBuyer && (
+              <>
+                <input
+                  value={farmName}
+                  onChange={(e) => setFarmName(e.target.value)}
+                  placeholder="Farm / business name"
+                  className="min-h-[56px] w-full rounded-2xl border border-black/10 bg-[#fff8e8] px-5 font-bold outline-none transition focus:border-[#2f6b3b] focus:ring-4 focus:ring-[#2f6b3b]/10"
+                />
+
+                <input
+                  value={location}
+                  onChange={(e) => setLocation(e.target.value)}
+                  placeholder="City / service area"
+                  className="min-h-[56px] w-full rounded-2xl border border-black/10 bg-[#fff8e8] px-5 font-bold outline-none transition focus:border-[#2f6b3b] focus:ring-4 focus:ring-[#2f6b3b]/10"
+                />
+              </>
+            )}
+
+            <button
+              type="submit"
+              disabled={isJoining}
+              className="min-h-[58px] w-full rounded-full bg-[#2f6b3b] px-7 font-black text-white shadow-xl shadow-green-900/20 transition hover:-translate-y-1 hover:bg-[#255832] disabled:cursor-not-allowed disabled:opacity-60"
+            >
+              {isJoining ? "Joining..." : page.button}
+            </button>
+
+            {message && (
+              <p className="rounded-2xl bg-[#fff8e8] p-4 text-sm font-black text-black/60">
+                {message}
+              </p>
+            )}
+          </div>
+        </form>
+      </section>
+
+      <GlobalStyles />
+    </main>
+  );
+}
+
+function Logo({ small = false }: { small?: boolean }) {
+  return (
+    <div
+      className={`relative overflow-hidden rounded-[1.5rem] bg-gradient-to-br from-[#ffe8a3] to-[#f4b400] p-1 shadow-lg shadow-yellow-900/10 ${
+        small ? "h-12 w-12" : "h-16 w-16"
+      }`}
+    >
+      <div className="grid h-full w-full place-items-center rounded-[1.25rem] bg-white/70">
+        <img
+          src="/assets/images/american_egghub.png"
+          alt="American EggHub logo"
+          className={
+            small ? "h-10 w-10 object-contain" : "h-14 w-14 object-contain"
+          }
+        />
+      </div>
+    </div>
   );
 }
 
@@ -537,21 +647,21 @@ function HeroPreview() {
     <div className="rounded-[2.5rem] bg-[#2f6b3b] p-4 shadow-2xl shadow-green-950/25">
       <div className="overflow-hidden rounded-[2rem] bg-[#fff8e8]">
         <div className="bg-[#ffe8a3] p-5">
-          <p className="text-sm font-black text-[#2f6b3b]">Nearby Storefront</p>
-          <h3 className="text-2xl font-black">K & P Farm</h3>
+          <p className="text-sm font-black text-[#2f6b3b]">Coming Soon</p>
+          <h3 className="text-2xl font-black">Local Egg Discovery</h3>
         </div>
 
         <div className="space-y-4 p-5">
           <div className="h-48 rounded-3xl bg-[#2f6b3b] p-4 text-white">
             <div className="flex h-full flex-col justify-between">
               <div className="flex gap-2">
-                <Badge>Map View</Badge>
-                <Badge>3 sellers nearby</Badge>
+                <Badge>Buyer waitlist</Badge>
+                <Badge>Seller waitlist</Badge>
               </div>
               <div className="grid grid-cols-3 gap-3">
-                <MapPin name="Farm Stand" />
-                <MapPin name="Duck Eggs" />
-                <MapPin name="Pickup" />
+                <MapPin name="Fresh Eggs" />
+                <MapPin name="Local Farms" />
+                <MapPin name="Pickup Soon" />
               </div>
             </div>
           </div>
@@ -560,6 +670,7 @@ function HeroPreview() {
     </div>
   );
 }
+
 function Stat({
   value,
   label,
@@ -620,5 +731,40 @@ function Step({
       <h3 className="mt-3 text-2xl font-black">{title}</h3>
       <p className="mt-3 leading-7 text-white/65">{text}</p>
     </div>
+  );
+}
+
+function GlobalStyles() {
+  return (
+    <style jsx global>{`
+      @keyframes floatEgg {
+        0%,
+        100% {
+          transform: translateY(0) rotate(0deg);
+        }
+        50% {
+          transform: translateY(-18px) rotate(6deg);
+        }
+      }
+
+      @keyframes fadeUp {
+        from {
+          opacity: 0;
+          transform: translateY(24px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+
+      .animate-fade-up {
+        animation: fadeUp 0.8s ease both;
+      }
+
+      .egg-float {
+        animation: floatEgg 5s ease-in-out infinite;
+      }
+    `}</style>
   );
 }
