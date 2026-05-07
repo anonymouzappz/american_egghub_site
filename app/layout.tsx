@@ -3,7 +3,7 @@ import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 
 const siteUrl = "https://americanegghub.us";
-const ogImage = "/assets/images/og-american_egghub.png";
+const ogImage = `${siteUrl}/assets/images/og-american_egghub.png`;
 
 export const viewport: Viewport = {
   width: "device-width",
