@@ -64,7 +64,7 @@ export const metadata: Metadata = {
       "Join the waitlist for American EggHub, launching first in Southwest Florida for buyers and local egg sellers.",
     images: [
       {
-        url: "/assets/images/american_egghub.png",
+        url: "/assets/images/og-american_egghub.png",
         width: 1200,
         height: 630,
         alt: "American EggHub - Fresh Local Eggs in Southwest Florida",
