@@ -2,6 +2,9 @@ import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 
+const siteUrl = "https://americanegghub.us";
+const ogImage = "/assets/images/og-american_egghub.png";
+
 export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
@@ -19,7 +22,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  metadataBase: new URL("https://americanegghub.us"),
+  metadataBase: new URL(siteUrl),
 
   title: {
     default: "American EggHub | Fresh Local Eggs in Southwest Florida",
@@ -51,20 +54,20 @@ export const metadata: Metadata = {
   publisher: "American EggHub",
 
   alternates: {
-    canonical: "/",
+    canonical: siteUrl,
   },
 
   openGraph: {
     type: "website",
     locale: "en_US",
-    url: "https://americanegghub.us",
+    url: siteUrl,
     siteName: "American EggHub",
     title: "American EggHub | Fresh Local Eggs in Southwest Florida",
     description:
       "Join the waitlist for American EggHub, launching first in Southwest Florida for buyers and local egg sellers.",
     images: [
       {
-        url: "/assets/images/og-american_egghub.png",
+        url: ogImage,
         width: 1200,
         height: 630,
         alt: "American EggHub - Fresh Local Eggs in Southwest Florida",
@@ -77,7 +80,7 @@ export const metadata: Metadata = {
     title: "American EggHub | Fresh Local Eggs in Southwest Florida",
     description:
       "Find fresh local eggs and connect with farms, homesteads, and backyard sellers in Southwest Florida.",
-    images: ["/assets/images/american_egghub.png"],
+    images: [ogImage],
   },
 
   robots: {
