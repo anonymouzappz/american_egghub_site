@@ -406,6 +406,38 @@ export default function Home() {
         </div>
       </section>
 
+      <footer className="relative z-10 border-t border-black/5 bg-white/60 px-6 py-8 backdrop-blur">
+  <div className="mx-auto flex max-w-7xl flex-col items-center justify-between gap-4 text-center md:flex-row md:text-left">
+    <div className="flex items-center gap-3">
+      <Logo small />
+      <div>
+        <p className="font-black text-[#2f6b3b]">American EggHub</p>
+        <p className="text-sm font-semibold text-black/50">
+          Fresh local eggs in Southwest Florida.
+        </p>
+      </div>
+    </div>
+
+    <div className="flex flex-wrap items-center justify-center gap-5 text-sm font-black text-black/60">
+      <Link href="/privacy-policy" className="transition hover:text-[#2f6b3b]">
+        Privacy Policy
+      </Link>
+
+      <Link href="/terms" className="transition hover:text-[#2f6b3b]">
+        Terms of Service
+      </Link>
+
+      <a href="#buyers" className="transition hover:text-[#2f6b3b]">
+        Buyers
+      </a>
+
+      <a href="#sellers" className="transition hover:text-[#2f6b3b]">
+        Sellers
+      </a>
+    </div>
+  </div>
+</footer>
+
       <GlobalStyles />
     </main>
   );
