@@ -1,7 +1,14 @@
 "use client";
 
 import { db } from "@/lib/firebase";
-import { doc, onSnapshot, serverTimestamp, setDoc } from "firebase/firestore";
+import {
+  addDoc,
+  collection,
+  doc,
+  onSnapshot,
+  serverTimestamp,
+  setDoc,
+} from "firebase/firestore";
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 
@@ -102,6 +109,9 @@ export default function Home() {
   const [content, setContent] = useState<LandingPageContent>(fallbackContent);
   const sellersRef = useRef<HTMLElement | null>(null);
   const [showSellers, setShowSellers] = useState(false);
+  const [email, setEmail] = useState("");
+  const [isSubscribing, setIsSubscribing] = useState(false);
+  const [subscribeMessage, setSubscribeMessage] = useState("");
 
   useEffect(() => {
     const ref = doc(db, "siteContent", "landingPage");
@@ -118,20 +128,20 @@ export default function Home() {
     return () => unsub();
   }, []);
 
-useEffect(() => {
-  const observer = new IntersectionObserver(
-    ([entry]) => {
-      setShowSellers(entry.isIntersecting);
-    },
-    { threshold: 0.25 }
-  );
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        setShowSellers(entry.isIntersecting);
+      },
+      { threshold: 0.25 },
+    );
 
-  if (sellersRef.current) {
-    observer.observe(sellersRef.current);
-  }
+    if (sellersRef.current) {
+      observer.observe(sellersRef.current);
+    }
 
-  return () => observer.disconnect();
-}, []);
+    return () => observer.disconnect();
+  }, []);
 
   const appUrl = content.appUrl;
 
@@ -151,6 +161,50 @@ useEffect(() => {
       alert(error?.message ?? "Seed failed");
     }
   };
+
+  const handleSubscribe = async (e: React.FormEvent) => {
+  e.preventDefault();
+
+  const cleanEmail = email.trim().toLowerCase();
+
+  if (!cleanEmail || !cleanEmail.includes("@")) {
+    setSubscribeMessage("Please enter a valid email.");
+    return;
+  }
+
+  try {
+    setIsSubscribing(true);
+    setSubscribeMessage("");
+
+    await addDoc(collection(db, "emailSubscribers"), {
+      email: cleanEmail,
+      source: "landing_page",
+      isActive: true,
+      createdAt: serverTimestamp(),
+    });
+
+    await addDoc(collection(db, "mail"), {
+      to: cleanEmail,
+      message: {
+        subject: "Welcome to American EggHub",
+        html: `
+          <h1>Welcome to American EggHub 🥚</h1>
+          <p>Thanks for subscribing!</p>
+          <p>We'll keep you updated as we launch.</p>
+        `,
+      },
+      createdAt: serverTimestamp(),
+    });
+
+    setEmail("");
+    setSubscribeMessage("You're subscribed! Check your email.");
+  } catch (error: any) {
+    console.error("Subscribe error:", error);
+    setSubscribeMessage(error?.message ?? "Subscribe failed.");
+  } finally {
+    setIsSubscribing(false);
+  }
+};
 
   return (
     <main className="relative min-h-screen overflow-hidden bg-[#fff8e8] text-[#1f241d]">
@@ -366,6 +420,55 @@ useEffect(() => {
               title="Buyers discover"
               text="Buyers browse the map, open storefronts, and connect locally."
             />
+          </div>
+        </div>
+      </section>
+
+      <section className="mx-auto max-w-7xl px-6 py-16">
+        <div className="relative overflow-hidden rounded-[2.5rem] bg-white/90 p-8 shadow-2xl shadow-black/5 backdrop-blur md:p-12">
+          <div className="absolute -right-12 -top-12 h-40 w-40 rounded-full bg-[#f4b400]/25 blur-2xl" />
+          <div className="absolute -bottom-16 -left-16 h-48 w-48 rounded-full bg-[#2f6b3b]/15 blur-2xl" />
+
+          <div className="relative grid gap-8 lg:grid-cols-[1fr_420px] lg:items-center">
+            <div>
+              <p className="font-black text-[#2f6b3b]">Stay Updated</p>
+              <h2 className="mt-2 text-4xl font-black">
+                Get notified when American EggHub launches near you.
+              </h2>
+              <p className="mt-4 max-w-2xl text-lg leading-8 text-black/60">
+                Join the early list for local egg updates, seller openings,
+                marketplace news, and launch announcements.
+              </p>
+            </div>
+
+            <form
+              onSubmit={handleSubscribe}
+              className="rounded-[2rem] bg-[#fff8e8] p-4 shadow-inner"
+            >
+              <div className="flex flex-col gap-3 sm:flex-row">
+                <input
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder="Enter your email"
+                  className="min-h-[56px] flex-1 rounded-full border border-black/10 bg-white px-5 text-base font-bold outline-none transition focus:border-[#2f6b3b] focus:ring-4 focus:ring-[#2f6b3b]/10"
+                />
+
+                <button
+                  type="submit"
+                  disabled={isSubscribing}
+                  className="min-h-[56px] rounded-full bg-[#2f6b3b] px-7 font-black text-white shadow-xl shadow-green-900/20 transition hover:-translate-y-1 hover:bg-[#255832] disabled:cursor-not-allowed disabled:opacity-60"
+                >
+                  {isSubscribing ? "Joining..." : "Subscribe"}
+                </button>
+              </div>
+
+              {subscribeMessage && (
+                <p className="mt-3 text-sm font-bold text-black/60">
+                  {subscribeMessage}
+                </p>
+              )}
+            </form>
           </div>
         </div>
       </section>
