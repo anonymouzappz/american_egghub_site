@@ -151,7 +151,7 @@ export default function Home() {
           </Link>
 
           <div className="hidden items-center gap-8 text-sm font-black md:flex">
-            {["buyers", "sellers", "how", "categories"].map((item) => (
+            {["buyers", "sellers", "pricing", "how", "categories"].map((item) => (
               <a
                 key={item}
                 href={`#${item}`}
@@ -226,7 +226,57 @@ export default function Home() {
           <HeroPreview />
         </div>
       </section>
+<section id="pricing" className="mx-auto max-w-7xl px-6 py-16">
+  <div className="grid gap-8 lg:grid-cols-[1fr_420px]">
+    <div className="rounded-[2.3rem] bg-white/90 p-8 shadow-2xl shadow-black/5 backdrop-blur md:p-12">
+      <div className="mb-5 inline-flex items-center gap-2 rounded-full bg-[#2f6b3b]/10 px-4 py-2 text-sm font-black text-[#2f6b3b]">
+        💸 Simple Seller Pricing
+      </div>
 
+      <h2 className="max-w-3xl text-4xl font-black md:text-5xl">
+        No monthly fees to start selling locally.
+      </h2>
+
+      <p className="mt-5 max-w-3xl text-lg leading-8 text-black/60">
+        American EggHub is built to help local farms, homesteads, and backyard
+        egg sellers get started without upfront cost. We only make money when
+        sellers make money.
+      </p>
+
+      <div className="mt-8 grid gap-4 sm:grid-cols-3">
+        <PricingMiniCard value="$0" label="Monthly fee to start" />
+        <PricingMiniCard value="5%" label="Marketplace fee per sale" />
+        <PricingMiniCard value="Free" label="Early waitlist access" />
+      </div>
+
+      <button
+        onClick={() => setScreen("seller")}
+        className="mt-8 rounded-full bg-[#2f6b3b] px-8 py-4 font-black text-white shadow-xl shadow-green-900/20 transition hover:-translate-y-1 hover:bg-[#255832]"
+      >
+        Join Seller Waitlist
+      </button>
+    </div>
+
+    <div className="rounded-[2.3rem] bg-[#2f6b3b] p-8 text-white shadow-2xl shadow-green-950/20 md:p-10">
+      <p className="font-black text-[#ffe8a3]">Why this works</p>
+
+      <div className="mt-7 space-y-5">
+        <PricingReason
+          title="Low risk for sellers"
+          text="No subscription pressure before they make sales."
+        />
+        <PricingReason
+          title="Built for small & large farms"
+          text="Perfect for backyard sellers and homesteads starting small or already big."
+        />
+        <PricingReason
+          title="Growth-friendly"
+          text="Later, sellers can upgrade with featured placement and boosted map visibility."
+        />
+      </div>
+    </div>
+  </div>
+</section>
       <section id="buyers" className="mx-auto max-w-7xl px-6 py-16">
         <AnimatedCard>
           <p className="font-black text-[#2f6b3b]">For Buyers</p>
@@ -358,6 +408,36 @@ export default function Home() {
 
       <GlobalStyles />
     </main>
+  );
+}
+
+function PricingMiniCard({
+  value,
+  label,
+}: {
+  value: string;
+  label: string;
+}) {
+  return (
+    <div className="rounded-[1.6rem] bg-[#fff8e8] p-6 shadow-sm transition hover:-translate-y-1 hover:shadow-xl">
+      <p className="text-4xl font-black text-[#2f6b3b]">{value}</p>
+      <p className="mt-2 text-sm font-black text-black/55">{label}</p>
+    </div>
+  );
+}
+
+function PricingReason({
+  title,
+  text,
+}: {
+  title: string;
+  text: string;
+}) {
+  return (
+    <div className="rounded-3xl bg-white/10 p-5">
+      <p className="font-black">{title}</p>
+      <p className="mt-2 text-sm leading-6 text-white/70">{text}</p>
+    </div>
   );
 }
 

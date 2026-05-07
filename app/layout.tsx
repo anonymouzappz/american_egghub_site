@@ -1,6 +1,12 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
+
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  themeColor: "#fff8e8",
+};
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -13,9 +19,80 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "American EggHub",
+  metadataBase: new URL("https://americanegghub.us"),
+
+  title: {
+    default: "American EggHub | Fresh Local Eggs in Southwest Florida",
+    template: "%s | American EggHub",
+  },
+
   description:
-    "Find fresh local eggs and connect with trusted sellers near you.",
+    "American EggHub is launching first in Southwest Florida to help buyers find fresh local eggs and help farms, homesteads, and backyard egg sellers reach nearby customers.",
+
+  keywords: [
+    "American EggHub",
+    "fresh local eggs",
+    "Southwest Florida eggs",
+    "Fort Myers eggs",
+    "Cape Coral eggs",
+    "Naples eggs",
+    "Labelle eggs",
+    "Lehigh Acres eggs",
+    "Punta Gorda eggs",
+    "farm fresh eggs Florida",
+    "backyard egg sellers",
+    "local egg marketplace",
+    "buy eggs near me",
+    "sell eggs online",
+  ],
+
+  authors: [{ name: "American EggHub" }],
+  creator: "American EggHub",
+  publisher: "American EggHub",
+
+  alternates: {
+    canonical: "/",
+  },
+
+  openGraph: {
+    type: "website",
+    locale: "en_US",
+    url: "https://americanegghub.us",
+    siteName: "American EggHub",
+    title: "American EggHub | Fresh Local Eggs in Southwest Florida",
+    description:
+      "Join the waitlist for American EggHub, launching first in Southwest Florida for buyers and local egg sellers.",
+    images: [
+      {
+        url: "/assets/images/american_egghub.png",
+        width: 1200,
+        height: 630,
+        alt: "American EggHub - Fresh Local Eggs in Southwest Florida",
+      },
+    ],
+  },
+
+  twitter: {
+    card: "summary_large_image",
+    title: "American EggHub | Fresh Local Eggs in Southwest Florida",
+    description:
+      "Find fresh local eggs and connect with farms, homesteads, and backyard sellers in Southwest Florida.",
+    images: ["/assets/images/american_egghub.png"],
+  },
+
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      "max-image-preview": "large",
+      "max-snippet": -1,
+      "max-video-preview": -1,
+    },
+  },
+
+  category: "marketplace",
 };
 
 export default function RootLayout({
