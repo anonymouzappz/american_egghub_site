@@ -151,7 +151,14 @@ export default function Home() {
           </Link>
 
           <div className="hidden items-center gap-8 text-sm font-black md:flex">
-            {["buyers", "sellers", "pricing", "how", "categories"].map((item) => (
+            {[
+              "buyers",
+              "sellers",
+              "pricing",
+              "how",
+              "categories",
+              "partners",
+            ].map((item) => (
               <a
                 key={item}
                 href={`#${item}`}
@@ -178,7 +185,6 @@ export default function Home() {
               <span className="animate-bounce">🚜</span>
               {content.heroBadge}
             </div>
-          
 
             <div className="mb-6 inline-flex items-center gap-2 rounded-full bg-[#2f6b3b]/10 px-4 py-2 text-sm font-black text-[#2f6b3b]">
               🌴 Launching First In Southwest Florida
@@ -226,57 +232,57 @@ export default function Home() {
           <HeroPreview />
         </div>
       </section>
-<section id="pricing" className="mx-auto max-w-7xl px-6 py-16">
-  <div className="grid gap-8 lg:grid-cols-[1fr_420px]">
-    <div className="rounded-[2.3rem] bg-white/90 p-8 shadow-2xl shadow-black/5 backdrop-blur md:p-12">
-      <div className="mb-5 inline-flex items-center gap-2 rounded-full bg-[#2f6b3b]/10 px-4 py-2 text-sm font-black text-[#2f6b3b]">
-        💸 Simple Seller Pricing
-      </div>
+      <section id="pricing" className="mx-auto max-w-7xl px-6 py-16">
+        <div className="grid gap-8 lg:grid-cols-[1fr_420px]">
+          <div className="rounded-[2.3rem] bg-white/90 p-8 shadow-2xl shadow-black/5 backdrop-blur md:p-12">
+            <div className="mb-5 inline-flex items-center gap-2 rounded-full bg-[#2f6b3b]/10 px-4 py-2 text-sm font-black text-[#2f6b3b]">
+              💸 Simple Seller Pricing
+            </div>
 
-      <h2 className="max-w-3xl text-4xl font-black md:text-5xl">
-        No monthly fees to start selling locally.
-      </h2>
+            <h2 className="max-w-3xl text-4xl font-black md:text-5xl">
+              No monthly fees to start selling locally.
+            </h2>
 
-      <p className="mt-5 max-w-3xl text-lg leading-8 text-black/60">
-        American EggHub is built to help local farms, homesteads, and backyard
-        egg sellers get started without upfront cost. We only make money when
-        sellers make money.
-      </p>
+            <p className="mt-5 max-w-3xl text-lg leading-8 text-black/60">
+              American EggHub is built to help local farms, homesteads, and
+              backyard egg sellers get started without upfront cost. We only
+              make money when sellers make money.
+            </p>
 
-      <div className="mt-8 grid gap-4 sm:grid-cols-3">
-        <PricingMiniCard value="$0" label="Monthly fee to start" />
-        <PricingMiniCard value="5%" label="Marketplace fee per sale" />
-        <PricingMiniCard value="Free" label="Early waitlist access" />
-      </div>
+            <div className="mt-8 grid gap-4 sm:grid-cols-3">
+              <PricingMiniCard value="$0" label="Monthly fee to start" />
+              <PricingMiniCard value="5%" label="Marketplace fee per sale" />
+              <PricingMiniCard value="Free" label="Early waitlist access" />
+            </div>
 
-      <button
-        onClick={() => setScreen("seller")}
-        className="mt-8 rounded-full bg-[#2f6b3b] px-8 py-4 font-black text-white shadow-xl shadow-green-900/20 transition hover:-translate-y-1 hover:bg-[#255832]"
-      >
-        Join Seller Waitlist
-      </button>
-    </div>
+            <button
+              onClick={() => setScreen("seller")}
+              className="mt-8 rounded-full bg-[#2f6b3b] px-8 py-4 font-black text-white shadow-xl shadow-green-900/20 transition hover:-translate-y-1 hover:bg-[#255832]"
+            >
+              Join Seller Waitlist
+            </button>
+          </div>
 
-    <div className="rounded-[2.3rem] bg-[#2f6b3b] p-8 text-white shadow-2xl shadow-green-950/20 md:p-10">
-      <p className="font-black text-[#ffe8a3]">Why this works</p>
+          <div className="rounded-[2.3rem] bg-[#2f6b3b] p-8 text-white shadow-2xl shadow-green-950/20 md:p-10">
+            <p className="font-black text-[#ffe8a3]">Why this works</p>
 
-      <div className="mt-7 space-y-5">
-        <PricingReason
-          title="Low risk for sellers"
-          text="No subscription pressure before they make sales."
-        />
-        <PricingReason
-          title="Built for small & large farms"
-          text="Perfect for backyard sellers and homesteads starting small or already big."
-        />
-        <PricingReason
-          title="Growth-friendly"
-          text="Later, sellers can upgrade with featured placement and boosted map visibility."
-        />
-      </div>
-    </div>
-  </div>
-</section>
+            <div className="mt-7 space-y-5">
+              <PricingReason
+                title="Low risk for sellers"
+                text="No subscription pressure before they make sales."
+              />
+              <PricingReason
+                title="Built for small & large farms"
+                text="Perfect for backyard sellers and homesteads starting small or already big."
+              />
+              <PricingReason
+                title="Growth-friendly"
+                text="Later, sellers can upgrade with featured placement and boosted map visibility."
+              />
+            </div>
+          </div>
+        </div>
+      </section>
       <section id="buyers" className="mx-auto max-w-7xl px-6 py-16">
         <AnimatedCard>
           <p className="font-black text-[#2f6b3b]">For Buyers</p>
@@ -379,7 +385,96 @@ export default function Home() {
           </div>
         </div>
       </section>
+      <section id="partners" className="mx-auto max-w-7xl px-6 py-16">
+        <div className="relative overflow-hidden rounded-[2.7rem] bg-[#171a14] p-8 text-white shadow-2xl shadow-black/25 md:p-12">
+          <div className="absolute -right-16 -top-16 h-48 w-48 rounded-full bg-[#f4b400]/20 blur-3xl" />
+          <div className="absolute -bottom-20 -left-20 h-56 w-56 rounded-full bg-[#2f6b3b]/40 blur-3xl" />
 
+          <div className="relative grid gap-10 lg:grid-cols-[1fr_420px] lg:items-center">
+            <div>
+              <div className="mb-5 inline-flex items-center gap-2 rounded-full bg-white/10 px-4 py-2 text-sm font-black text-[#ffe8a3]">
+                🤝 Partner & Investor Opportunity
+              </div>
+
+              <h2 className="max-w-3xl text-4xl font-black md:text-6xl">
+                Help build the local farm marketplace starting in Southwest
+                Florida.
+              </h2>
+
+              <p className="mt-5 max-w-3xl text-lg leading-8 text-white/70">
+                American EggHub is preparing a local marketplace for egg
+                sellers, homesteads, backyard farms, and farm goods. We are open
+                to early investors, agriculture partners, local sponsors, and
+                strategic partnerships that help small sellers reach nearby
+                buyers.
+              </p>
+
+              <div className="mt-8 grid gap-4 sm:grid-cols-2">
+                <PartnerPoint
+                  title="Early-stage investors"
+                  text="Support marketplace growth, seller onboarding, and launch operations."
+                />
+                <PartnerPoint
+                  title="Agriculture partners"
+                  text="Connect with local sellers, farms, homesteads, and poultry communities."
+                />
+                <PartnerPoint
+                  title="Farm supply sponsors"
+                  text="Reach sellers who need feed, coops, packaging, tools, and equipment."
+                />
+                <PartnerPoint
+                  title="Local business partnerships"
+                  text="Help bring trusted local food commerce to more communities."
+                />
+              </div>
+
+              <div className="mt-9 flex flex-col gap-4 sm:flex-row">
+                <a
+                  href="mailto:americanegghub@gmail.com?subject=American%20EggHub%20Partnership%20Interest"
+                  className="rounded-full bg-[#f4b400] px-8 py-4 text-center font-black text-black shadow-xl shadow-yellow-900/20 transition hover:-translate-y-1"
+                >
+                  Contact About Investing
+                </a>
+
+                <button
+                  onClick={() => setScreen("seller")}
+                  className="rounded-full bg-white/10 px-8 py-4 font-black text-white ring-1 ring-white/15 transition hover:-translate-y-1 hover:bg-white/15"
+                >
+                  Join Seller Waitlist
+                </button>
+              </div>
+            </div>
+
+            <div className="relative rounded-[2.2rem] bg-white p-6 text-[#1f241d] shadow-2xl">
+              <p className="text-sm font-black text-[#2f6b3b]">
+                Startup Snapshot
+              </p>
+
+              <div className="mt-5 grid gap-4">
+                <InvestorMetric value="SWFL" label="First launch region" />
+                <InvestorMetric value="5%" label="Planned marketplace fee" />
+                <InvestorMetric
+                  value="$0"
+                  label="Monthly seller fee to start"
+                />
+                <InvestorMetric
+                  value="2-sided"
+                  label="Buyer + seller marketplace"
+                />
+              </div>
+
+              <div className="mt-6 rounded-[1.7rem] bg-[#fff8e8] p-5">
+                <p className="font-black text-[#2f6b3b]">Why now?</p>
+                <p className="mt-2 text-sm leading-6 text-black/60">
+                  Local food discovery is still fragmented. American EggHub
+                  gives small sellers a storefront, map visibility, waitlist
+                  growth, and a simple way to reach nearby buyers.
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
       <section className="mx-auto max-w-7xl px-6 py-20">
         <div className="relative overflow-hidden rounded-[2.5rem] bg-[#f4b400] p-8 text-center shadow-2xl shadow-yellow-900/20 md:p-14">
           <h2 className="relative text-4xl font-black md:text-5xl">
@@ -407,49 +502,64 @@ export default function Home() {
       </section>
 
       <footer className="relative z-10 border-t border-black/5 bg-white/60 px-6 py-8 backdrop-blur">
-  <div className="mx-auto flex max-w-7xl flex-col items-center justify-between gap-4 text-center md:flex-row md:text-left">
-    <div className="flex items-center gap-3">
-      <Logo small />
-      <div>
-        <p className="font-black text-[#2f6b3b]">American EggHub</p>
-        <p className="text-sm font-semibold text-black/50">
-          Fresh local eggs in Southwest Florida.
-        </p>
-      </div>
-    </div>
+        <div className="mx-auto flex max-w-7xl flex-col items-center justify-between gap-4 text-center md:flex-row md:text-left">
+          <div className="flex items-center gap-3">
+            <Logo small />
+            <div>
+              <p className="font-black text-[#2f6b3b]">American EggHub</p>
+              <p className="text-sm font-semibold text-black/50">
+                Fresh local eggs in Southwest Florida.
+              </p>
+            </div>
+          </div>
 
-    <div className="flex flex-wrap items-center justify-center gap-5 text-sm font-black text-black/60">
-      <Link href="/privacy-policy" className="transition hover:text-[#2f6b3b]">
-        Privacy Policy
-      </Link>
+          <div className="flex flex-wrap items-center justify-center gap-5 text-sm font-black text-black/60">
+            <Link
+              href="/privacy-policy"
+              className="transition hover:text-[#2f6b3b]"
+            >
+              Privacy Policy
+            </Link>
 
-      <Link href="/terms" className="transition hover:text-[#2f6b3b]">
-        Terms of Service
-      </Link>
+            <Link href="/terms" className="transition hover:text-[#2f6b3b]">
+              Terms of Service
+            </Link>
 
-      <a href="#buyers" className="transition hover:text-[#2f6b3b]">
-        Buyers
-      </a>
+            <a href="#buyers" className="transition hover:text-[#2f6b3b]">
+              Buyers
+            </a>
 
-      <a href="#sellers" className="transition hover:text-[#2f6b3b]">
-        Sellers
-      </a>
-    </div>
-  </div>
-</footer>
+            <a href="#sellers" className="transition hover:text-[#2f6b3b]">
+              Sellers
+            </a>
+          </div>
+        </div>
+      </footer>
 
       <GlobalStyles />
     </main>
   );
 }
 
-function PricingMiniCard({
-  value,
-  label,
-}: {
-  value: string;
-  label: string;
-}) {
+function PartnerPoint({ title, text }: { title: string; text: string }) {
+  return (
+    <div className="rounded-3xl bg-white/10 p-5 ring-1 ring-white/10 transition hover:-translate-y-1 hover:bg-white/15">
+      <p className="font-black text-white">{title}</p>
+      <p className="mt-2 text-sm leading-6 text-white/65">{text}</p>
+    </div>
+  );
+}
+
+function InvestorMetric({ value, label }: { value: string; label: string }) {
+  return (
+    <div className="rounded-[1.5rem] bg-[#fff8e8] p-5">
+      <p className="text-3xl font-black text-[#2f6b3b]">{value}</p>
+      <p className="mt-1 text-sm font-black text-black/50">{label}</p>
+    </div>
+  );
+}
+
+function PricingMiniCard({ value, label }: { value: string; label: string }) {
   return (
     <div className="rounded-[1.6rem] bg-[#fff8e8] p-6 shadow-sm transition hover:-translate-y-1 hover:shadow-xl">
       <p className="text-4xl font-black text-[#2f6b3b]">{value}</p>
@@ -458,13 +568,7 @@ function PricingMiniCard({
   );
 }
 
-function PricingReason({
-  title,
-  text,
-}: {
-  title: string;
-  text: string;
-}) {
+function PricingReason({ title, text }: { title: string; text: string }) {
   return (
     <div className="rounded-3xl bg-white/10 p-5">
       <p className="font-black">{title}</p>
