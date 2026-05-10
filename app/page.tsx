@@ -628,44 +628,50 @@ function ComingSoonScreen({
   }, [isBuyer]);
 
   const handleJoinWaitlist = async (e: React.FormEvent) => {
-    e.preventDefault();
+  e.preventDefault();
 
-    const cleanEmail = email.trim().toLowerCase();
-    const cleanZip = zipCode.trim();
+  if (isJoining) return;
 
-    if (!cleanEmail || !cleanEmail.includes("@")) {
-      setMessage("Please enter a valid email.");
-      return;
-    }
+  const cleanEmail = email.trim().toLowerCase();
+  const cleanZip = zipCode.trim();
 
-    if (!cleanZip) {
-      setMessage("Please enter your City or ZIP Code.");
-      return;
-    }
+  if (!cleanEmail || !cleanEmail.includes("@")) {
+    setMessage("Please enter a valid email.");
+    return;
+  }
 
-    try {
-      setIsJoining(true);
-      setMessage("");
+  if (!cleanZip) {
+    setMessage("Please enter your City or ZIP Code.");
+    return;
+  }
 
-      const safeEmailId = cleanEmail.replaceAll(".", "_").replaceAll("@", "_");
+  setIsJoining(true);
+  setMessage("");
 
-      await setDoc(
-        doc(db, "waitlist", `${type}_${safeEmailId}`),
-        {
-          email: cleanEmail,
-          type,
-          zipCode: cleanZip,
-          farmName: farmName.trim(),
-          location: location.trim(),
-          source: isBuyer ? "buyer_coming_soon" : "seller_coming_soon",
-          isActive: true,
-          updatedAt: serverTimestamp(),
-          createdAt: serverTimestamp(),
-        },
-        { merge: true },
-      );
+  try {
+    const safeEmailId = cleanEmail
+      .replace(/[^a-z0-9]/g, "_")
+      .replace(/_+/g, "_");
 
-      await setDoc(
+    const waitlistData = {
+      email: cleanEmail,
+      type,
+      audience: type,
+      zipCode: cleanZip,
+      farmName: farmName.trim(),
+      location: location.trim(),
+      source: isBuyer ? "buyer_coming_soon" : "seller_coming_soon",
+      isActive: true,
+      updatedAt: serverTimestamp(),
+      createdAt: serverTimestamp(),
+    };
+
+    await Promise.all([
+      setDoc(doc(db, "waitlist", `${type}_${safeEmailId}`), waitlistData, {
+        merge: true,
+      }),
+
+      setDoc(
         doc(db, "emailSubscribers", safeEmailId),
         {
           email: cleanEmail,
@@ -677,40 +683,41 @@ function ComingSoonScreen({
           createdAt: serverTimestamp(),
         },
         { merge: true },
-      );
+      ),
+    ]);
 
-      await setDoc(doc(collection(db, "mail")), {
-        to: cleanEmail,
-        message: {
-          subject: `You're on the ${brandName} waitlist`,
-          html: `
-            <div style="font-family:Arial,sans-serif;background:#fff8e8;padding:30px;">
-              <div style="max-width:620px;margin:auto;background:white;border-radius:24px;padding:30px;border:1px solid #eee;">
-                <h1 style="color:#2f6b3b;margin-top:0;">Welcome to ${brandName} 🥚</h1>
-                <p>Thanks for joining the ${isBuyer ? "buyer" : "seller"} waitlist.</p>
-                <p>We'll keep you updated as American EggHub gets ready to launch in your area.</p>
-                <p style="margin-top:30px;font-size:12px;color:#777;">
-                  You received this because you joined the American EggHub waitlist.
-                </p>
-              </div>
+    setEmail("");
+    setZipCode("");
+    setFarmName("");
+    setLocation("");
+    setMessage("You're on the waitlist!");
+
+    // Do not block the waitlist form with email sending.
+    setDoc(doc(collection(db, "mail")), {
+      to: cleanEmail,
+      message: {
+        subject: `You're on the ${brandName} waitlist`,
+        html: `
+          <div style="font-family:Arial,sans-serif;background:#fff8e8;padding:30px;">
+            <div style="max-width:620px;margin:auto;background:white;border-radius:24px;padding:30px;border:1px solid #eee;">
+              <h1 style="color:#2f6b3b;margin-top:0;">Welcome to ${brandName} 🥚</h1>
+              <p>Thanks for joining the ${isBuyer ? "buyer" : "seller"} waitlist.</p>
+              <p>We'll keep you updated as American EggHub gets ready to launch in your area.</p>
             </div>
-          `,
-        },
-        createdAt: serverTimestamp(),
-      });
-
-      setEmail("");
-      setZipCode("");
-      setFarmName("");
-      setLocation("");
-      setMessage("You're on the waitlist! Check your email.");
-    } catch (error: any) {
-      console.error(error);
-      setMessage(error?.message ?? "Something went wrong.");
-    } finally {
-      setIsJoining(false);
-    }
-  };
+          </div>
+        `,
+      },
+      createdAt: serverTimestamp(),
+    }).catch((err) => {
+      console.warn("Welcome email queue failed:", err);
+    });
+  } catch (error: any) {
+    console.error("Waitlist error:", error);
+    setMessage(error?.message ?? "Something went wrong. Please try again.");
+  } finally {
+    setIsJoining(false);
+  }
+};
 
   return (
     <main className="relative min-h-screen overflow-hidden bg-[#fff8e8] text-[#1f241d]">
